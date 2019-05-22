@@ -38,6 +38,14 @@ res.json(persons)
 app.post('/api/persons', (req, res) => {
     const person = req.body
 
+    if (!person.name) {
+        return res.status(400).json({error: "Nimi on pakollinen tieto"})
+    } else if (!person.number) {
+        return res.status(400).json({error: "Numero on pakollinen tieto"})
+    } else if (persons.filter(storedPerson => storedPerson.name.toLowerCase() === person.name.toLowerCase()).length > 0) {
+        return res.status(409).json({error: `${person.name} on jo luettelossa`})
+    }
+
     const personObject = {
         name: person.name,
         number: person.number,
