@@ -26,7 +26,7 @@ app.get('/api/persons', (req, res) => {
       });
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const person = req.body
 
     if (!person.name) {
@@ -42,6 +42,7 @@ app.post('/api/persons', (req, res) => {
     personObject.save().then( savedPerson => {
         res.json(savedPerson.toJSON())
     })
+    .catch ( error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -55,10 +56,7 @@ app.get('/api/persons/:id', (req, res, next) => {
             res.status(404).send("Henkilöä ei löytynyt")
         }
     })
-    .catch( error => {
-        console.log("Catching")
-        next(error)
-    })
+    .catch( error => next(error) )
 })
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -91,7 +89,9 @@ const errorHandler = (error, request, response, next) => {
   
     if (error.name === 'CastError' && error.kind == 'ObjectId') {
       return response.status(400).send({ error: 'malformatted id' })
-    } 
+    } else if (error.name === 'ValidationError') {
+        return response.status(409).json({error: `${request.body.name} on jo luettelossa`})
+    }
   
     next(error)
   }
