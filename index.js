@@ -85,12 +85,14 @@ const unknownEndpoint = (request, response) => {
   app.use(unknownEndpoint)
 
 const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
-  
     if (error.name === 'CastError' && error.kind == 'ObjectId') {
       return response.status(400).send({ error: 'malformatted id' })
     } else if (error.name === 'ValidationError') {
-        return response.status(409).json({error: `${request.body.name} on jo luettelossa`})
+        if (error.errors.name && error.errors.name.kind == 'unique') {
+            return response.status(409).json({error: `${request.body.name} on jo luettelossa`})
+        } else {
+            return response.status(400).json( {error: error.message} )
+        }
     }
   
     next(error)
