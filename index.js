@@ -13,28 +13,15 @@ app.use(express.static('build'))
 app.use(bodyParser.json())
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-let persons = [
-    {
-      "name": "Arto Hellas",
-      "number": "045-1236543",
-      "id": 1
-    },
-    {
-        "name": "Arto Järvinen",
-        "number": "041-21423123",
-        "id": 2
-    },
-    {
-        "name": "Lea Kutvonen",
-        "number": "040-4323234",
-        "id": 3
-    },
-    {
-      "name": "Martti Tienari",
-      "number": "09-784232",
-      "id": 4
-    }   
-]
+const errorHandler = (error, req, res, next) => {  
+    if (error.name === 'CastError' && error.kind == 'ObjectId') {
+      return res.status(400).send({ error: 'malformatted id' })
+    } 
+  
+    next(error)
+  }
+  
+  app.use(errorHandler)
   
 app.get('/info', (req, res) => {
     res.status(200).send(`<p>Puhelinluettelossa on ${persons.length} henkilön tiedot</p><p>${Date()}</p>`)
@@ -54,8 +41,6 @@ app.post('/api/persons', (req, res) => {
         return res.status(400).json({error: "Nimi on pakollinen tieto"})
     } else if (!person.number) {
         return res.status(400).json({error: "Numero on pakollinen tieto"})
-    } else if (persons.filter(storedPerson => storedPerson.name.toLowerCase() === person.name.toLowerCase()).length > 0) {
-        return res.status(409).json({error: `${person.name} on jo luettelossa`})
     }
 
     const personObject = new Person({
