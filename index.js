@@ -69,6 +69,18 @@ app.delete('/api/persons/:id', (req, res) => {
         })
 })
 
+app.put('/api/persons/:id', (req, res, next) => {
+    const person = req.body
+    const personObject = {
+        number: person.number
+    }
+    Person.findByIdAndUpdate(req.params.id, personObject, {new: true})
+    .then (updatedPerson => {
+        res.json(updatedPerson.toJSON())
+    })
+    .catch( error => next(error) )
+})
+
 const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
