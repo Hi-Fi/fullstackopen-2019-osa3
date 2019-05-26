@@ -1,7 +1,9 @@
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const bodyParser = require('body-parser')
 const morgan = require('morgan')
+const Person = require('./models/person')
 
 morgan.token('body', function getBody (req) {
     return JSON.stringify(req.body)
@@ -39,7 +41,10 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-res.json(persons)
+    Person.find({}).then(persons => {
+        console.log(persons)
+        res.json(persons)
+      });
 })
 
 app.post('/api/persons', (req, res) => {
@@ -53,14 +58,13 @@ app.post('/api/persons', (req, res) => {
         return res.status(409).json({error: `${person.name} on jo luettelossa`})
     }
 
-    const personObject = {
+    const personObject = new Person({
         name: person.name,
-        number: person.number,
-        id: parseInt(100000*Math.random())
-    }
-
-    persons = persons.concat(personObject)
-    res.json(personObject)
+        number: person.number
+    })
+    personObject.save().then( savedPerson => {
+        res.json(savedPerson.toJSON())
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -74,12 +78,13 @@ app.get('/api/persons/:id', (req, res) => {
 })
 
 app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter( person => person.id !== id)
-    res.status(204).end()
+    Person.findByIdAndRemove(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-console.log(`Server running on port ${PORT}`)
+    console.log(`Server running on port ${PORT}`)
 })
