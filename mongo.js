@@ -20,20 +20,20 @@ const personSchema = new mongoose.Schema({
 const Person = mongoose.model('Person', personSchema)
 
 if (process.argv[3] && process.argv[4]) {
-    let person = new Person({
-        name: process.argv[3],
-        number: process.argv[4]
-      })
-      person.save().then(response => {
-        console.log(`lisätään ${person.name} numero ${person.number} luetteloon`);
-        mongoose.connection.close();
-      })
+  let person = new Person({
+    name: process.argv[3],
+    number: process.argv[4]
+  })
+  person.save().then(() => {
+    console.log(`lisätään ${person.name} numero ${person.number} luetteloon`)
+    mongoose.connection.close()
+  })
 } else {
-    Person.find({}).then (results => {
-        console.log("Puhelinluettelo:")
-        results.forEach(person => {
-            console.log(`${person.name} ${person.number}`)
-          })
-        mongoose.connection.close();
+  Person.find({}).then (results => {
+    console.log('Puhelinluettelo:')
+    results.forEach(person => {
+      console.log(`${person.name} ${person.number}`)
     })
+    mongoose.connection.close()
+  })
 }
